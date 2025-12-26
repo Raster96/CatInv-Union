@@ -1,0 +1,17 @@
+IMPORTANT: ZenGin SDK Setup Required
+
+Before compiling this project, you need to copy the ZenGin SDK files to the ZenGin/ folder.
+
+The ZenGin folder should contain:
+- Gothic_I_Classic/
+- Gothic_I_Addon/
+- Gothic_II_Classic/
+- Gothic_II_Addon/
+- Gothic_UserAPI/
+- zGothicAPI.h
+
+These files are not included in this repository due to licensing restrictions and file size.
+
+You can obtain the ZenGin SDK from the Union SDK or Gothic modding community resources.
+
+After copying the ZenGin files, the project should compile successfully.
