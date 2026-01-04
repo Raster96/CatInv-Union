@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace GOTHIC_ENGINE {
     class CatInvCore {
@@ -10,6 +11,13 @@ namespace GOTHIC_ENGINE {
         static oCItemContainer* containerBySide[2];
         static zCListSort<oCItem>* filteredListBySide[2];
         static bool hooksActive;
+        
+        // Search functionality
+        static bool searchActive;
+        static bool searchInputActive;  // True when typing, false after Enter
+        static std::wstring searchText;
+        static zCView* searchView;
+        static int previousCategory;
 
         static int GetCategoryID(int offset);
         static bool SupportCategories(oCItemContainer* container);
@@ -28,6 +36,15 @@ namespace GOTHIC_ENGINE {
 
         static void DrawCategory(oCItemContainer* container);
         static zSTRING GetCategoryName(int categoryID);
+        
+        // Search functions
+        static void ActivateSearch();
+        static void DeactivateSearch();
+        static void UpdateSearchText(char c);
+        static void RemoveLastSearchChar();
+        static bool ItemMatchesSearch(oCItem* item);
+        static void FilterContainerBySearch(oCItemContainer* container);
+        static void DrawSearchBox(oCItemContainer* container);
 
         static bool IsWorldReady();
 

@@ -1,11 +1,14 @@
 # CatInv-Union
 
-A Union port of the popular CatInv (Category Inventory) plugin for Gothic II, originally created by szapp (Sören Zapp), visit [szapp's CatInv repository](https://github.com/szapp/CatInv) for the original Ninja version.
-CatInv adds inventory categorization to Gothic II, allowing players to filter items by type (weapons, armor, potions, etc.) for better inventory management. This version is specifically ported to work with the Union.
+![CatInv Screenshot](ss1.png)
+
+A Union port of the popular CatInv (Category Inventory) plugin for Gothic II, originally created by szapp (Sören Zapp) - visit [szapp's CatInv repository](https://github.com/szapp/CatInv) for the original Ninja version.
+CatInv adds inventory categorization to Gothic II, allowing players to filter items by type (weapons, armor, potions, etc.) for better inventory management. The main goal of the project is to eliminate the need for Ninja extension.
 
 ## Features
 
 - **9 Item Categories**: All, Weapons, Armor, Magic, Artifacts, Food, Potions, Writings, Miscellaneous
+- **Item Search**: Real-time search by item name with SHIFT+F
 - **Keyboard Navigation**: Use SHIFT + Arrow Keys to switch between categories
 - **Visual Category Display**: Shows current category name next to the gold counter
 - **Full Container Support**: Works with player inventory, chests, trade, and dead NPCs
@@ -24,6 +27,14 @@ CatInv adds inventory categorization to Gothic II, allowing players to filter it
 - **SHIFT + ←/→**: Switch between categories
 - **SHIFT + Home**: Jump to first category
 - **SHIFT + End**: Jump to last category
+- **Home**: Jump to first item in current category/search results
+- **End**: Jump to last item in current category/search results
+- **SHIFT + F**: Activate item search
+  - Type to search for items by name
+  - **Enter**: Confirm search (allows navigation with arrows/Home/End)
+  - **ESC**: Cancel search and return to category view
+  - **Backspace**: Remove last character from search
+  - Search automatically switches to "All" category
 
 ### Category Types
 - **All**: Shows all items (default)
@@ -97,8 +108,12 @@ This is a community project. Feel free to:
 - Report bugs in the [Issues](../../issues) section
 - Submit improvements via Pull Requests
 - Share feedback and suggestions
+- Discord: raster96
 
 ## Version History
+
+- **v1.0.1** - Added item search functionality with SHIFT+F and diacritics support
+  - Added HOME/END keys to jump to first/last item in current view
 
 - **v1.0.0** - Initial Union port
   - Full feature parity with original Ninja CatInv

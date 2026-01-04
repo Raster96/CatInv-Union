@@ -19,16 +19,16 @@ namespace GOTHIC_ENGINE {
         CatInvCore::filteredListBySide[0] = nullptr;
         CatInvCore::filteredListBySide[1] = nullptr;
         CatInvCore::hooksActive = false;
+        CatInvCore::searchActive = false;
+        CatInvCore::searchInputActive = false;
+        CatInvCore::searchText = L"";
+        CatInvCore::searchView = nullptr;
     }
 
     void Game_Exit() {
-        // Cleanup disabled for now
     }
 
     void Game_PreLoop() {
-    }
-
-    void Game_Loop() {
         if (!player || !screen || !zinput || !ogame) return;
         if (ogame->inScriptStartup || ogame->inLoadSaveGame || ogame->inLevelChange) return;
 
@@ -36,7 +36,88 @@ namespace GOTHIC_ENGINE {
             if (player->inventory2.IsOpen()) {
                 bool shiftPressed = zinput->KeyPressed(KEY_LSHIFT) || zinput->KeyPressed(KEY_RSHIFT);
                 
-                if (shiftPressed) {
+                if (shiftPressed && zinput->KeyToggled(KEY_F)) {
+                    if (!CatInvCore::searchActive) {
+                        CatInvCore::ActivateSearch();
+                    } else if (!CatInvCore::searchInputActive) {
+                        CatInvCore::searchInputActive = true;
+                    }
+                }
+                
+                if (CatInvCore::searchActive && CatInvCore::searchInputActive) {
+                    if (zinput->KeyToggled(KEY_ESCAPE)) {
+                        CatInvCore::DeactivateSearch();
+                    }
+                    else if (zinput->KeyToggled(KEY_RETURN)) {
+                        CatInvCore::searchInputActive = false;
+                    }
+                    else if (zinput->KeyToggled(KEY_BACK)) {
+                        CatInvCore::RemoveLastSearchChar();
+                    }
+                    else {
+                        if (zinput->AnyKeyPressed()) {
+                            BYTE keys[256] = {};
+                            auto keyboardLayout = GetKeyboardLayout(0);
+                            
+                            if (GetKeyboardState(keys) != FALSE) {
+                                keys[VK_CAPITAL] = (BYTE)GetKeyState(VK_CAPITAL);
+                                keys[VK_SHIFT] = (BYTE)GetKeyState(VK_SHIFT);
+                                
+                                wchar_t buff[] = { 0, 0 };
+                                
+                                for (int i = 0; i < MAX_KEYS; i++) {
+                                    auto scan = MapVirtualKeyExW(i, MAPVK_VSC_TO_VK_EX, keyboardLayout);
+                                    if (scan != 0 && zinput->KeyToggled(i)) {
+                                        auto numChars = ToUnicodeEx(scan, scan, keys, buff, 2, 0, keyboardLayout);
+                                        if (numChars == 1 && iswprint(buff[0])) {
+                                            CatInvCore::searchText += buff[0];
+                                            CatInvCore::UpdateAllContainers();
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    zinput->ClearKeyBuffer();
+                }
+                else if (CatInvCore::searchActive && !CatInvCore::searchInputActive) {
+                    if (zinput->KeyToggled(KEY_ESCAPE)) {
+                        CatInvCore::DeactivateSearch();
+                    }
+                    else if (shiftPressed) {
+                        if (zinput->KeyToggled(KEY_LEFT)) {
+                            CatInvCore::DeactivateSearch();
+                            CatInvCore::ShiftCategory(-1);
+                        }
+                        else if (zinput->KeyToggled(KEY_RIGHT)) {
+                            CatInvCore::DeactivateSearch();
+                            CatInvCore::ShiftCategory(1);
+                        }
+                        else if (zinput->KeyToggled(KEY_HOME)) {
+                            CatInvCore::DeactivateSearch();
+                            CatInvCore::SetCategoryFirst();
+                        }
+                        else if (zinput->KeyToggled(KEY_END)) {
+                            CatInvCore::DeactivateSearch();
+                            CatInvCore::SetCategoryLast();
+                        }
+                    }
+                    else {
+                        if (zinput->KeyToggled(KEY_HOME)) {
+                            oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
+                                ? CatInvCore::containerBySide[0] : &player->inventory2;
+                            CatInvCore::SetSelectionFirst(activeContainer);
+                        }
+                        else if (zinput->KeyToggled(KEY_END)) {
+                            oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
+                                ? CatInvCore::containerBySide[0] : &player->inventory2;
+                            CatInvCore::SetSelectionLast(activeContainer);
+                        }
+                    }
+                }
+                else if (shiftPressed) {
                     if (zinput->KeyToggled(KEY_LEFT)) {
                         CatInvCore::ShiftCategory(-1);
                     }
@@ -50,9 +131,24 @@ namespace GOTHIC_ENGINE {
                         CatInvCore::SetCategoryLast();
                     }
                 }
+                else {
+                    if (zinput->KeyToggled(KEY_HOME)) {
+                        oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
+                            ? CatInvCore::containerBySide[0] : &player->inventory2;
+                        CatInvCore::SetSelectionFirst(activeContainer);
+                    }
+                    else if (zinput->KeyToggled(KEY_END)) {
+                        oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
+                            ? CatInvCore::containerBySide[0] : &player->inventory2;
+                        CatInvCore::SetSelectionLast(activeContainer);
+                    }
+                }
             }
         }
         catch (...) { }
+    }
+
+    void Game_Loop() {
     }
 
     void Game_PostLoop() {
@@ -78,6 +174,10 @@ namespace GOTHIC_ENGINE {
         CatInvCore::filteredListBySide[1] = nullptr;
         CatInvCore::categoryView = nullptr;
         CatInvCore::hooksActive = false;
+        CatInvCore::searchActive = false;
+        CatInvCore::searchInputActive = false;
+        CatInvCore::searchText = L"";
+        CatInvCore::searchView = nullptr;
     }
 
     void LoadEnd() {

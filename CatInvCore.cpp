@@ -1,4 +1,5 @@
 #include "UnionAfx.h"
+#include <algorithm>
 
 namespace GOTHIC_ENGINE {
     int CatInvCore::activeCategory = 0;
@@ -8,6 +9,11 @@ namespace GOTHIC_ENGINE {
     oCItemContainer* CatInvCore::containerBySide[2] = { nullptr, nullptr };
     zCListSort<oCItem>* CatInvCore::filteredListBySide[2] = { nullptr, nullptr };
     bool CatInvCore::hooksActive = false;
+    bool CatInvCore::searchActive = false;
+    bool CatInvCore::searchInputActive = false;
+    std::wstring CatInvCore::searchText = L"";
+    zCView* CatInvCore::searchView = nullptr;
+    int CatInvCore::previousCategory = 0;
 
     int CatInvCore::GetCategoryID(int offset) {
         if (offset >= 0 && offset < INV_CAT_MAX) {
@@ -33,8 +39,8 @@ namespace GOTHIC_ENGINE {
             txtInvCatSymbol = parser->GetSymbol("TXT_INV_CAT");
         }
         
-        if (txtInvCatSymbol && categoryID >= 0 && categoryID < INV_CAT_MAX) {
-            if (txtInvCatSymbol->type == zPAR_TYPE_STRING && txtInvCatSymbol->ele > categoryID) {
+        if (txtInvCatSymbol && categoryID >= 0 && categoryID < (int)INV_CAT_MAX) {
+            if (txtInvCatSymbol->type == zPAR_TYPE_STRING && txtInvCatSymbol->ele > (unsigned int)categoryID) {
                 if (txtInvCatSymbol->stringdata && txtInvCatSymbol->stringdata[categoryID].Length() > 0) {
                     return txtInvCatSymbol->stringdata[categoryID];
                 }
@@ -77,6 +83,10 @@ namespace GOTHIC_ENGINE {
         if (newCategory == activeCategory) return false;
 
         activeCategory = newCategory;
+        
+        if (searchActive) {
+            DeactivateSearch();
+        }
         
         UpdateAllContainers();
         
@@ -145,6 +155,11 @@ namespace GOTHIC_ENGINE {
         if (!container) return;
         if (!container->contents) return;
         int side = container->right ? 1 : 0;
+        
+        if (searchActive) {
+            FilterContainerBySearch(container);
+            return;
+        }
         
         if (activeCategory == INV_CAT_ALL) {
             if (containerBySide[side] == container && backupListBySide[side]) {
@@ -234,6 +249,10 @@ namespace GOTHIC_ENGINE {
 
         int side = container->right ? 1 : 0;
         
+        if (searchActive) {
+            DeactivateSearch();
+        }
+        
         bool isPlayerInventory = (container->right != 0);
         bool isDeadBody = (dynamic_cast<oCNpcContainer*>(container) != nullptr);
         bool isChest = (!dynamic_cast<oCNpcInventory*>(container) && 
@@ -272,10 +291,15 @@ namespace GOTHIC_ENGINE {
     void CatInvCore::DrawCategory(oCItemContainer* container) {
         if (!container) return;
         if (!IsWorldReady()) return;
-        if (activeCategory == 0 && !CatInvOptions::G1Mode) return;
+        if (activeCategory == 0 && !CatInvOptions::G1Mode && !searchActive) return;
         if (!SupportCategories(container)) return;
         if (!container->viewTitle) return;
         if (!container->contents) return;
+
+        if (searchActive) {
+            DrawSearchBox(container);
+            return;
+        }
 
         if (categoryView == NULL) {
             categoryView = new zCView(0, 0, 8192, 8192);
@@ -433,7 +457,8 @@ namespace GOTHIC_ENGINE {
             CatInvCore::backupListBySide[side] = this->contents;
         }
         
-        if (CatInvCore::IsWorldReady() && CatInvCore::activeCategory != INV_CAT_ALL) {
+        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        if (CatInvCore::IsWorldReady() && needsFilter) {
             CatInvCore::FilterContainerByCategory(this);
         }
     }
@@ -463,10 +488,10 @@ namespace GOTHIC_ENGINE {
                        !dynamic_cast<oCStealContainer*>(this) && 
                        !dynamic_cast<oCNpcContainer*>(this);
         
+        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        
         if (isChest && CatInvCore::containerBySide[side] == this && 
-            CatInvCore::backupListBySide[side] && 
-            CatInvCore::activeCategory != INV_CAT_ALL) {
-            
+            CatInvCore::backupListBySide[side] && needsFilter) {
             this->contents = CatInvCore::backupListBySide[side];
         }
         
@@ -475,7 +500,7 @@ namespace GOTHIC_ENGINE {
         if (isChest && CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
             
-            if (CatInvCore::activeCategory != INV_CAT_ALL) {
+            if (needsFilter) {
                 CatInvCore::FilterContainerByCategory(this);
             }
         }
@@ -491,10 +516,10 @@ namespace GOTHIC_ENGINE {
                        !dynamic_cast<oCStealContainer*>(this) && 
                        !dynamic_cast<oCNpcContainer*>(this);
         
+        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        
         if (isChest && CatInvCore::containerBySide[side] == this && 
-            CatInvCore::backupListBySide[side] && 
-            CatInvCore::activeCategory != INV_CAT_ALL) {
-            
+            CatInvCore::backupListBySide[side] && needsFilter) {
             this->contents = CatInvCore::backupListBySide[side];
         }
         
@@ -503,7 +528,7 @@ namespace GOTHIC_ENGINE {
         if (isChest && CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
             
-            if (CatInvCore::activeCategory != INV_CAT_ALL) {
+            if (needsFilter) {
                 CatInvCore::FilterContainerByCategory(this);
             }
         }
@@ -513,7 +538,9 @@ namespace GOTHIC_ENGINE {
     oCItem* oCNpcInventory::Insert_Union(oCItem* item) {
         oCItem* result = (oCItem*)THISCALL(Hook_oCNpcInventory_Insert)(item);
         
-        if (CatInvCore::IsWorldReady() && CatInvCore::activeCategory != INV_CAT_ALL) {
+        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        
+        if (CatInvCore::IsWorldReady() && needsFilter) {
             int side = this->right ? 1 : 0;
             if (CatInvCore::containerBySide[side] == this) {
                 CatInvCore::FilterContainerByCategory(this);
@@ -527,7 +554,9 @@ namespace GOTHIC_ENGINE {
     oCItem* oCNpcInventory::Remove_Union(oCItem* item, int amount) {
         oCItem* result = (oCItem*)THISCALL(Hook_oCNpcInventory_Remove)(item, amount);
         
-        if (CatInvCore::IsWorldReady() && CatInvCore::activeCategory != INV_CAT_ALL) {
+        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        
+        if (CatInvCore::IsWorldReady() && needsFilter) {
             int side = this->right ? 1 : 0;
             if (CatInvCore::containerBySide[side] == this) {
                 CatInvCore::FilterContainerByCategory(this);
@@ -541,7 +570,9 @@ namespace GOTHIC_ENGINE {
     int oCItemContainer::TransferItem_Union(int a, int b) {
         int result = (int)THISCALL(Hook_oCItemContainer_TransferItem)(a, b);
         
-        if (CatInvCore::IsWorldReady() && CatInvCore::activeCategory != INV_CAT_ALL) {
+        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        
+        if (CatInvCore::IsWorldReady() && needsFilter) {
             for (int side = 0; side < 2; ++side) {
                 oCItemContainer* cont = CatInvCore::containerBySide[side];
                 if (cont) {
@@ -579,5 +610,185 @@ namespace GOTHIC_ENGINE {
         }
 
         initialized = true;
+    }
+    
+    void CatInvCore::ActivateSearch() {
+        if (searchActive) return;
+        
+        previousCategory = activeCategory;
+        searchText = L"";
+        
+        if (activeCategory != INV_CAT_ALL) {
+            activeCategory = INV_CAT_ALL;
+            UpdateAllContainers();
+        }
+        
+        searchActive = true;
+        searchInputActive = true;
+    }
+    
+    void CatInvCore::DeactivateSearch() {
+        if (!searchActive) return;
+        
+        searchActive = false;
+        searchInputActive = false;
+        searchText = L"";
+        
+        UpdateAllContainers();
+    }
+    
+    void CatInvCore::UpdateSearchText(char c) {
+        if (!searchActive) return;
+        
+        searchText += (wchar_t)c;
+        UpdateAllContainers();
+    }
+    
+    void CatInvCore::RemoveLastSearchChar() {
+        if (!searchActive) return;
+        if (searchText.length() == 0) return;
+        
+        searchText = searchText.substr(0, searchText.length() - 1);
+        UpdateAllContainers();
+    }
+    
+    bool CatInvCore::ItemMatchesSearch(oCItem* item) {
+        if (!item) return false;
+        if (!searchActive) return true;
+        if (searchText.length() == 0) return true;
+        
+        zSTRING itemName = item->name;
+        itemName.Upper();
+        
+        std::wstring searchUpper = searchText;
+        std::transform(searchUpper.begin(), searchUpper.end(), searchUpper.begin(), ::towupper);
+        
+        std::wstring itemNameW = AToW(itemName.ToChar());
+        std::transform(itemNameW.begin(), itemNameW.end(), itemNameW.begin(), ::towupper);
+        
+        return itemNameW.find(searchUpper) != std::wstring::npos;
+    }
+    
+    void CatInvCore::FilterContainerBySearch(oCItemContainer* container) {
+        if (!container) return;
+        if (!container->contents) return;
+        if (!searchActive) return;
+        
+        int side = container->right ? 1 : 0;
+        
+        if (!SupportCategories(container)) return;
+
+        if (containerBySide[side] != container) {
+            if (containerBySide[side] && backupListBySide[side]) {
+                containerBySide[side]->contents = backupListBySide[side];
+            }
+            backupListBySide[side] = container->contents;
+            containerBySide[side] = container;
+        }
+
+        if (!backupListBySide[side]) {
+            backupListBySide[side] = container->contents;
+            containerBySide[side] = container;
+        }
+
+        if (!filteredListBySide[side]) {
+            filteredListBySide[side] = new zCListSort<oCItem>();
+        }
+        filteredListBySide[side]->next = nullptr;
+        filteredListBySide[side]->data = nullptr;
+        
+        if (backupListBySide[side] && backupListBySide[side]->Compare) {
+            filteredListBySide[side]->Compare = backupListBySide[side]->Compare;
+        }
+        
+        zCListSort<oCItem>* tail = filteredListBySide[side];
+
+        zCListSort<oCItem>* node = backupListBySide[side]->next;
+        while (node) {
+            if (node->data) {
+                oCItem* item = node->data;
+                if (ItemMatchesSearch(item)) {
+                    zCListSort<oCItem>* newNode = new zCListSort<oCItem>();
+                    newNode->data = item;
+                    newNode->next = nullptr;
+                    tail->next = newNode;
+                    tail = newNode;
+                }
+            }
+            node = node->next;
+        }
+
+        container->contents = filteredListBySide[side];
+        
+        ResetOffset(container);
+        container->CheckSelectedItem();
+        container->prepared = 0;
+        oCItemContainer::Container_PrepareDraw();
+    }
+    
+    void CatInvCore::DrawSearchBox(oCItemContainer* container) {
+        if (!container) return;
+        if (!IsWorldReady()) return;
+        if (!searchActive) return;
+        if (!SupportCategories(container)) return;
+        if (!container->viewTitle) return;
+        if (!container->contents) return;
+
+        if (searchView == NULL) {
+            searchView = new zCView(0, 0, 8192, 8192);
+        }
+
+        zCView* viewTitle = container->viewTitle;
+        
+        int defaultWidth = *(int*)DEFAULT_WIDTH_ADDR;
+        int width = 2 * defaultWidth;
+        int height = viewTitle->vsizey;
+
+        int posY = viewTitle->vposy + viewTitle->vsizey - 1;
+        int posX;
+        if (container->right) {
+            posX = viewTitle->vposx;
+        } else {
+            posX = viewTitle->vposx + viewTitle->vsizex - width;
+        }
+
+        searchView->SetPos(posX, posY);
+        searchView->SetSize(width, height);
+        
+        zCTexture* backTex = nullptr;
+        if (container->viewBack && container->viewBack->backTex) {
+            backTex = container->viewBack->backTex;
+        }
+        
+        zCTexture* titleTex = nullptr;
+        if (container->viewTitle && container->viewTitle->backTex) {
+            titleTex = container->viewTitle->backTex;
+        }
+        
+        if (screen) {
+            screen->InsertItem(searchView, 0);
+        }
+        
+        if (backTex) {
+            searchView->InsertBack(backTex);
+        }
+        searchView->SetTransparency(255);
+        searchView->ClrPrintwin();
+        searchView->Blit();
+        
+        if (titleTex) {
+            searchView->InsertBack(titleTex);
+        }
+        
+        zSTRING displayText = WToA(searchText).c_str();
+        if (searchInputActive) {
+            displayText += "_";
+        }
+        searchView->PrintCXY(displayText);
+        searchView->Blit();
+        
+        if (screen) {
+            screen->RemoveItem(searchView);
+        }
     }
 }
