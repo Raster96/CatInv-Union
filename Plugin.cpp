@@ -106,13 +106,25 @@ namespace GOTHIC_ENGINE {
                     }
                     else {
                         if (zinput->KeyToggled(KEY_HOME)) {
-                            oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
-                                ? CatInvCore::containerBySide[0] : &player->inventory2;
+                            oCItemContainer* activeContainer = nullptr;
+                            if (CatInvCore::containerBySide[1] && CatInvCore::containerBySide[1]->IsActive()) {
+                                activeContainer = CatInvCore::containerBySide[1];
+                            } else if (CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive()) {
+                                activeContainer = CatInvCore::containerBySide[0];
+                            } else {
+                                activeContainer = &player->inventory2;
+                            }
                             CatInvCore::SetSelectionFirst(activeContainer);
                         }
                         else if (zinput->KeyToggled(KEY_END)) {
-                            oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
-                                ? CatInvCore::containerBySide[0] : &player->inventory2;
+                            oCItemContainer* activeContainer = nullptr;
+                            if (CatInvCore::containerBySide[1] && CatInvCore::containerBySide[1]->IsActive()) {
+                                activeContainer = CatInvCore::containerBySide[1];
+                            } else if (CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive()) {
+                                activeContainer = CatInvCore::containerBySide[0];
+                            } else {
+                                activeContainer = &player->inventory2;
+                            }
                             CatInvCore::SetSelectionLast(activeContainer);
                         }
                     }
@@ -133,13 +145,25 @@ namespace GOTHIC_ENGINE {
                 }
                 else {
                     if (zinput->KeyToggled(KEY_HOME)) {
-                        oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
-                            ? CatInvCore::containerBySide[0] : &player->inventory2;
+                        oCItemContainer* activeContainer = nullptr;
+                        if (CatInvCore::containerBySide[1] && CatInvCore::containerBySide[1]->IsActive()) {
+                            activeContainer = CatInvCore::containerBySide[1];
+                        } else if (CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive()) {
+                            activeContainer = CatInvCore::containerBySide[0];
+                        } else {
+                            activeContainer = &player->inventory2;
+                        }
                         CatInvCore::SetSelectionFirst(activeContainer);
                     }
                     else if (zinput->KeyToggled(KEY_END)) {
-                        oCItemContainer* activeContainer = CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive() 
-                            ? CatInvCore::containerBySide[0] : &player->inventory2;
+                        oCItemContainer* activeContainer = nullptr;
+                        if (CatInvCore::containerBySide[1] && CatInvCore::containerBySide[1]->IsActive()) {
+                            activeContainer = CatInvCore::containerBySide[1];
+                        } else if (CatInvCore::containerBySide[0] && CatInvCore::containerBySide[0]->IsActive()) {
+                            activeContainer = CatInvCore::containerBySide[0];
+                        } else {
+                            activeContainer = &player->inventory2;
+                        }
                         CatInvCore::SetSelectionLast(activeContainer);
                     }
                 }
@@ -178,6 +202,7 @@ namespace GOTHIC_ENGINE {
         CatInvCore::searchInputActive = false;
         CatInvCore::searchText = L"";
         CatInvCore::searchView = nullptr;
+        CatInvCore::activeCategory = CatInvOptions::G1Mode ? 1 : 0;
     }
 
     void LoadEnd() {

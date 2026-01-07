@@ -107,14 +107,15 @@ namespace GOTHIC_ENGINE {
 
     void CatInvCore::ResetOffset(oCItemContainer* container) {
         if (!container) return;
-        container->selectedItem -= container->offset;
         container->offset = 0;
     }
 
     void CatInvCore::SetSelectionFirst(oCItemContainer* container) {
         if (!container) return;
-        ResetOffset(container);
+        container->offset = 0;
         container->selectedItem = 0;
+        container->prepared = 0;
+        oCItemContainer::Container_PrepareDraw();
     }
 
     void CatInvCore::SetSelectionLast(oCItemContainer* container) {
@@ -129,16 +130,25 @@ namespace GOTHIC_ENGINE {
             }
         }
         
-        if (numItems > 0) {
-            container->selectedItem = numItems - 1;
-            
-            int maxCols = container->maxSlotsCol;
-            int maxRows = container->maxSlotsRow;
-            int numRows = (numItems - 1) / maxCols + 1;
-            container->offset = (numRows - maxRows) * maxCols;
-            
-            if (container->offset < 0) container->offset = 0;
+        if (numItems <= 0) return;
+        
+        int maxCols = container->maxSlotsCol;
+        int maxRows = container->maxSlotsRow;
+        int visibleSlots = maxCols * maxRows;
+        
+        container->selectedItem = numItems - 1;
+        
+        if (numItems > visibleSlots) {
+            int lastItemRow = (numItems - 1) / maxCols;
+            int firstVisibleRow = lastItemRow - maxRows + 1;
+            if (firstVisibleRow < 0) firstVisibleRow = 0;
+            container->offset = firstVisibleRow * maxCols;
+        } else {
+            container->offset = 0;
         }
+        
+        container->prepared = 0;
+        oCItemContainer::Container_PrepareDraw();
     }
 
     void CatInvCore::ResetContainer(oCItemContainer* container) {
@@ -417,6 +427,54 @@ namespace GOTHIC_ENGINE {
         THISCALL(Hook_oCItemContainer_PrevItem)();
     }
 
+    HOOK Hook_oCItemContainer_NextItemLine PATCH(&oCItemContainer::NextItemLine, &oCItemContainer::NextItemLine_Union);
+    void oCItemContainer::NextItemLine_Union() {
+        int numItems = 0;
+        if (this->contents) {
+            zCListSort<oCItem>* list = this->contents->next;
+            while (list) {
+                numItems++;
+                list = list->next;
+            }
+        }
+        
+        int maxCols = this->maxSlotsCol;
+        int maxRows = this->maxSlotsRow;
+        int visibleSlots = maxCols * maxRows;
+        
+        int newSelected = this->selectedItem + maxCols;
+        
+        if (newSelected < numItems) {
+            this->selectedItem = newSelected;
+            
+            if (this->selectedItem >= this->offset + visibleSlots) {
+                this->offset += maxCols;
+            }
+            
+            this->prepared = 0;
+            oCItemContainer::Container_PrepareDraw();
+        }
+    }
+
+    HOOK Hook_oCItemContainer_PrevItemLine PATCH(&oCItemContainer::PrevItemLine, &oCItemContainer::PrevItemLine_Union);
+    void oCItemContainer::PrevItemLine_Union() {
+        int maxCols = this->maxSlotsCol;
+        
+        int newSelected = this->selectedItem - maxCols;
+        
+        if (newSelected >= 0) {
+            this->selectedItem = newSelected;
+            
+            if (this->selectedItem < this->offset) {
+                this->offset -= maxCols;
+                if (this->offset < 0) this->offset = 0;
+            }
+            
+            this->prepared = 0;
+            oCItemContainer::Container_PrepareDraw();
+        }
+    }
+
     HOOK Hook_oCItemContainer_OpenPassive PATCH(&oCItemContainer::OpenPassive, &oCItemContainer::OpenPassive_Union);
     void oCItemContainer::OpenPassive_Union(int a, int b, int c) {
         THISCALL(Hook_oCItemContainer_OpenPassive)(a, b, c);
@@ -439,8 +497,47 @@ namespace GOTHIC_ENGINE {
     void oCItemContainer::DrawCategory_Union() {
         THISCALL(Hook_oCItemContainer_DrawCategory)();
         if (CatInvCore::IsWorldReady()) {
+            bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+            if (needsFilter) {
+                CatInvCore::FilterContainerByCategory(this);
+            }
             CatInvCore::DrawCategory(this);
         }
+    }
+
+    HOOK Hook_oCItemContainer_CheckSelectedItem PATCH(&oCItemContainer::CheckSelectedItem, &oCItemContainer::CheckSelectedItem_Union);
+    void oCItemContainer::CheckSelectedItem_Union() {
+        int numItems = 0;
+        if (this->contents) {
+            zCListSort<oCItem>* list = this->contents->next;
+            while (list) {
+                numItems++;
+                list = list->next;
+            }
+        }
+        
+        if (this->selectedItem < 0) {
+            this->selectedItem = 0;
+        }
+        if (numItems > 0 && this->selectedItem >= numItems) {
+            this->selectedItem = numItems - 1;
+        }
+        
+        int maxCols = this->maxSlotsCol;
+        int maxRows = this->maxSlotsRow;
+        int visibleSlots = maxCols * maxRows;
+        
+        if (this->selectedItem < this->offset) {
+            this->offset = (this->selectedItem / maxCols) * maxCols;
+        }
+        if (this->selectedItem >= this->offset + visibleSlots) {
+            int selectedRow = this->selectedItem / maxCols;
+            int firstVisibleRow = selectedRow - maxRows + 1;
+            if (firstVisibleRow < 0) firstVisibleRow = 0;
+            this->offset = firstVisibleRow * maxCols;
+        }
+        
+        if (this->offset < 0) this->offset = 0;
     }
 
     HOOK Hook_oCStealContainer_CreateList PATCH(&oCStealContainer::CreateList, &oCStealContainer::CreateList_Union);
@@ -536,15 +633,16 @@ namespace GOTHIC_ENGINE {
     
     HOOK Hook_oCNpcInventory_Insert PATCH(&oCNpcInventory::Insert, &oCNpcInventory::Insert_Union);
     oCItem* oCNpcInventory::Insert_Union(oCItem* item) {
+        int side = this->right ? 1 : 0;
+        
+        if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
+            this->contents = CatInvCore::backupListBySide[side];
+        }
+        
         oCItem* result = (oCItem*)THISCALL(Hook_oCNpcInventory_Insert)(item);
         
-        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
-        
-        if (CatInvCore::IsWorldReady() && needsFilter) {
-            int side = this->right ? 1 : 0;
-            if (CatInvCore::containerBySide[side] == this) {
-                CatInvCore::FilterContainerByCategory(this);
-            }
+        if (CatInvCore::containerBySide[side] == this) {
+            CatInvCore::backupListBySide[side] = this->contents;
         }
         
         return result;
@@ -552,15 +650,33 @@ namespace GOTHIC_ENGINE {
     
     HOOK Hook_oCNpcInventory_Remove PATCH(&oCNpcInventory::Remove, &oCNpcInventory::Remove_Union);
     oCItem* oCNpcInventory::Remove_Union(oCItem* item, int amount) {
+        int side = this->right ? 1 : 0;
+        
+        if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
+            this->contents = CatInvCore::backupListBySide[side];
+        }
+        
         oCItem* result = (oCItem*)THISCALL(Hook_oCNpcInventory_Remove)(item, amount);
         
-        bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive;
+        if (CatInvCore::containerBySide[side] == this) {
+            CatInvCore::backupListBySide[side] = this->contents;
+        }
         
-        if (CatInvCore::IsWorldReady() && needsFilter) {
-            int side = this->right ? 1 : 0;
-            if (CatInvCore::containerBySide[side] == this) {
-                CatInvCore::FilterContainerByCategory(this);
-            }
+        return result;
+    }
+    
+    HOOK Hook_oCNpcInventory_RemoveByPtr PATCH(&oCNpcInventory::RemoveByPtr, &oCNpcInventory::RemoveByPtr_Union);
+    oCItem* oCNpcInventory::RemoveByPtr_Union(oCItem* item, int amount) {
+        int side = this->right ? 1 : 0;
+        
+        if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
+            this->contents = CatInvCore::backupListBySide[side];
+        }
+        
+        oCItem* result = (oCItem*)THISCALL(Hook_oCNpcInventory_RemoveByPtr)(item, amount);
+        
+        if (CatInvCore::containerBySide[side] == this) {
+            CatInvCore::backupListBySide[side] = this->contents;
         }
         
         return result;

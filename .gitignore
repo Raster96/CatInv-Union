@@ -109,9 +109,6 @@ Desktop.ini
 *.swp
 *.swo
 
-# Union SDK (don't commit SDK files)
-ZenGin/
-
 # Build folders
 *Release/
 *Debug/

@@ -49,8 +49,6 @@ CatInv adds inventory categorization to Gothic II, allowing players to filter it
 
 ## Configuration
 
-Add these options to your `Gothic.ini` file under `[CATINV]` section:
-
 ```ini
 [CATINV]
 invCatG1Mode=0          ; 0=Show "All" category, 1=Hide "All" category
@@ -61,7 +59,6 @@ invCatG1Mode=0          ; 0=Show "All" category, 1=Hide "All" category
 ### Prerequisites
 - Visual Studio 2019 or later
 - Union SDK v1.0m
-- ZenGin headers (copy from Union SDK)
 
 ### Build Steps
 1. Clone this repository
@@ -112,7 +109,15 @@ This is a community project. Feel free to:
 
 ## Version History
 
-- **v1.0.1** - Added item search functionality with SHIFT+F and diacritics support
+- **v1.0.2**
+  - Fixed bug with unequipping stackable weapons
+  - Bug fixes for scrolling and navigation issues
+  - Fixed End key positioning and scrolling behavior
+  - Fixed Home key container selection logic
+  - Added proper scrolling support for filtered lists
+
+- **v1.0.1**
+  - Added item search functionality with SHIFT+F. Diacritics support copied from https://github.com/Sefaris/ItemMap/.
   - Added HOME/END keys to jump to first/last item in current view
 
 - **v1.0.0** - Initial Union port
