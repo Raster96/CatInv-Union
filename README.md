@@ -13,7 +13,7 @@ CatInv adds inventory categorization to Gothic II NotR, allowing players to filt
 - **Visual Category Display**: Shows current category name next to the gold counter
 - **Full Container Support**: Works with player inventory, chests, trade, and dead NPCs
 - **Localization Support**: Automatically uses game language for category names
-- **Gothic II Compatible**: Supports both Gothic II Classic and NotR
+- **Gothic II Compatible**: Supports Gothic II NotR
 
 ## Installation
 
