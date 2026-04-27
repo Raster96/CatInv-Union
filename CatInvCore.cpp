@@ -774,15 +774,14 @@ namespace GOTHIC_ENGINE {
         if (searchText.length() == 0) return true;
         
         zSTRING itemName = item->name;
-        itemName.Upper();
-        
-        std::wstring searchUpper = searchText;
-        std::transform(searchUpper.begin(), searchUpper.end(), searchUpper.begin(), ::towupper);
         
         std::wstring itemNameW = AToW(itemName.ToChar());
-        std::transform(itemNameW.begin(), itemNameW.end(), itemNameW.begin(), ::towupper);
+        std::wstring searchW = searchText;
         
-        return itemNameW.find(searchUpper) != std::wstring::npos;
+        CharUpperW(&itemNameW[0]);
+        CharUpperW(&searchW[0]);
+        
+        return itemNameW.find(searchW) != std::wstring::npos;
     }
     
     void CatInvCore::FilterContainerBySearch(oCItemContainer* container) {

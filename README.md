@@ -84,7 +84,8 @@ This project maintains compatibility with the original CatInv license terms.
 ## Compatibility
 
 - **Gothic II Classic**: ✅ Supported
-- **Gothic II NotR**: ✅ Supported  
+- **Gothic II NotR**: ✅ Supported
+- **The Chronicles of Myrtana: Archolos**: ✅ Tested and working
 - **Golden Gate II**: ✅ Tested and working
 - **Other Plugins**: Compatible with most Union plugins
 

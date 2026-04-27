@@ -245,6 +245,19 @@ namespace GOTHIC_ENGINE {
     }
     
     void Game_DefineExternals() {
+        // Block TCOM original Daedalus-based CatInv to prevent conflicts with CatInv-Union.
+        if (parser) {
+            int symIdx = parser->GetIndex("CATINV_INIT");
+            if (symIdx >= 0) {
+                zCPar_Symbol* sym = parser->GetSymbol(symIdx);
+                if (sym && sym->type == zPAR_TYPE_FUNC) {
+                    int codePos = sym->single_intdata;
+                    if (codePos >= 0 && codePos < parser->stack.stacksize) {
+                        parser->stack.stack[codePos] = zPAR_TOK_RET;
+                    }
+                }
+            }
+        }
     }
 
     void Game_ApplyOptions() {
