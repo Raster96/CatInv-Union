@@ -1,9 +1,9 @@
-# CatInv-Union
+# CatInv-Union [Gothic 2 NotR]
+A Union port of the popular CatInv (Categorized Inventory) plugin for Gothic II NotR, originally created by szapp (Sören Zapp) - visit [szapp's CatInv repository](https://github.com/szapp/CatInv) for the original Ninja version.
+CatInv adds inventory categorization to Gothic II NotR, allowing players to filter items by type (weapons, armor, potions, etc.) for better inventory management. The main goal of the project is to eliminate the need for Ninja extension.
 
 ![CatInv Screenshot](ss1.png)
-
-A Union port of the popular CatInv (Category Inventory) plugin for Gothic II, originally created by szapp (Sören Zapp) - visit [szapp's CatInv repository](https://github.com/szapp/CatInv) for the original Ninja version.
-CatInv adds inventory categorization to Gothic II, allowing players to filter items by type (weapons, armor, potions, etc.) for better inventory management. The main goal of the project is to eliminate the need for Ninja extension.
+https://www.youtube.com/watch?v=FfEk0sskfYQ
 
 ## Features
 
@@ -13,7 +13,7 @@ CatInv adds inventory categorization to Gothic II, allowing players to filter it
 - **Visual Category Display**: Shows current category name next to the gold counter
 - **Full Container Support**: Works with player inventory, chests, trade, and dead NPCs
 - **Localization Support**: Automatically uses game language for category names
-- **Gothic II Compatible**: Supports both Gothic II Classic and NotR
+- **Gothic II Compatible**: Supports Gothic II NotR
 
 ## Installation
 
@@ -35,6 +35,9 @@ CatInv adds inventory categorization to Gothic II, allowing players to filter it
   - **ESC**: Cancel search and return to category view
   - **Backspace**: Remove last character from search
   - Search automatically switches to "All" category
+
+### Video
+https://www.youtube.com/watch?v=FfEk0sskfYQ
 
 ### Category Types
 - **All**: Shows all items (default)
