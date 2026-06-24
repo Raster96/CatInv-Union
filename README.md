@@ -3,7 +3,7 @@ A Union port of the popular CatInv (Categorized Inventory) plugin for Gothic II 
 CatInv adds inventory categorization to Gothic II NotR, allowing players to filter items by type (weapons, armor, potions, etc.) for better inventory management. The main goal of the project is to eliminate the need for Ninja extension and add new functionalities not present in the original version.
 
 ![CatInv Screenshot](ss1.png)
-https://www.youtube.com/watch?v=FfEk0sskfYQ
+https://www.youtube.com/watch?v=mbxLW37EjmA
 
 ## What's New in Union Version
 
@@ -69,7 +69,7 @@ This Union port includes several enhancements over the original Ninja CatInv:
   - Search automatically switches to "All" category and is displayed in the category area
 
 ### Video
-https://www.youtube.com/watch?v=FfEk0sskfYQ
+https://www.youtube.com/watch?v=mbxLW37EjmA
 
 ### Category Types
 - **Favorites**: Shows only items marked as favorites (accessible with SHIFT+H)

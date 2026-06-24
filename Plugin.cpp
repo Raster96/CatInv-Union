@@ -69,7 +69,7 @@ namespace GOTHIC_ENGINE {
             if (player->inventory2.IsOpen()) {
                 bool shiftPressed = zinput->KeyPressed(KEY_LSHIFT) || zinput->KeyPressed(KEY_RSHIFT);
                 
-                if (zinput->KeyToggled(CatInvOptions::KeyToggleFavorite)) {
+                if (!CatInvCore::searchInputActive && zinput->KeyToggled(CatInvOptions::KeyToggleFavorite)) {
                     oCItemContainer* activeContainer = nullptr;
                     if (CatInvCore::containerBySide[1] && CatInvCore::containerBySide[1]->IsActive()) {
                         activeContainer = CatInvCore::containerBySide[1];
