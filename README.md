@@ -169,7 +169,7 @@ This is a community project. Feel free to:
 
 ## Version History
 
-- **v1.0.3**
+- **v1.0.4**
   - Improved compatibility with The Chronicles Of Myrtana: Archolos
   - Added Recent Items category (automatically tracks recently acquired items, configurable via MaxRecentItems, default: 15, access with SHIFT+R)
   - Added Favorites category (press = to add/remove item, SHIFT+H to access category)
