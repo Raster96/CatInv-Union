@@ -49,24 +49,30 @@ This Union port includes several enhancements over the original Ninja CatInv:
 ## Usage
 
 ### Basic Controls
-- **SHIFT + ←/→**: Switch between categories
-- **SHIFT + ↓**: Cycle sort mode forward (None→Price 9-1→Price 1-9→Name A-Z→Name Z-A)
-- **SHIFT + ↑**: Cycle sort mode backward (reverse order)
-- **SHIFT + Home**: Jump to ALL category (reset filter)
-- **SHIFT + End**: Jump to last category in custom order
-- **SHIFT + H**: Jump to Favorites category
-  - **= (Equals)**: Toggle favorite status for selected item (customizable in options menu)
-- **SHIFT + R**: Jump to Recent items category (shows last acquired items)
-- **SHIFT + Space**: Jump to item's real category (from Search/Favorites/Recent)
-- **Home**: Jump to first item in current category/search results
-- **End**: Jump to last item in current category/search results
-- **SHIFT + F**: Activate item search
-  - Type to search for items by name
-  - **Enter/arrows**: Confirm search (allows navigation with arrows/Home/End)
-  - **ESC**: Cancel search and return to category view
-  - **Backspace**: Remove last character from search
-  - **SHIFT + Backspace**: Clear entire search text
-  - Search automatically switches to "All" category and is displayed in the category area
+
+| Key Combination | Action |
+|-----------------|--------|
+| **SHIFT + ←/→** | Switch between categories |
+| **SHIFT + ↓** | Cycle sort mode forward (None→Price 9-1→Price 1-9→Name A-Z→Name Z-A) |
+| **SHIFT + ↑** | Cycle sort mode backward (reverse order) |
+| **SHIFT + Home** | Jump to ALL category (reset filter) |
+| **SHIFT + End** | Jump to last category in custom order |
+| **SHIFT + H** | Jump to Favorites category |
+| **= (Equals)** | Toggle favorite status for selected item (customizable in options menu) |
+| **SHIFT + R** | Jump to Recent items category (shows last acquired items) |
+| **SHIFT + Space** | Jump to item's real category (from Search/Favorites/Recent) |
+| **Home** | Jump to first item in current category/search results |
+| **End** | Jump to last item in current category/search results |
+| **SHIFT + F** | Activate item search |
+
+**Search Controls:**
+| Key Combination | Action |
+|-----------------|--------|
+| **Type** | Search for items by name |
+| **Enter/Arrows** | Confirm search (allows navigation with arrows/Home/End) |
+| **ESC** | Cancel search and return to category view |
+| **Backspace** | Remove last character from search |
+| **SHIFT + Backspace** | Clear entire search text |
 
 ### Video
 https://www.youtube.com/watch?v=mbxLW37EjmA
@@ -169,7 +175,7 @@ This is a community project. Feel free to:
 
 ## Version History
 
-- **v1.0.3**
+- **v1.0.4**
   - Improved compatibility with The Chronicles Of Myrtana: Archolos
   - Added Recent Items category (automatically tracks recently acquired items, configurable via MaxRecentItems, default: 15, access with SHIFT+R)
   - Added Favorites category (press = to add/remove item, SHIFT+H to access category)
