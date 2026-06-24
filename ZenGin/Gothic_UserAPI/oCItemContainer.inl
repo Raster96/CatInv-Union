@@ -15,3 +15,6 @@ void CheckSelectedItem_Union();
 int TransferItem_Union(int, int);
 oCItem* Insert_Union(oCItem*);
 void Remove_Union(oCItem*);
+int IsEmpty_Union();
+void Draw_Union();
+void DrawItemInfo_Union(oCItem*, zCWorld*);

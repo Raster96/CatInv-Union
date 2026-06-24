@@ -1,6 +1,6 @@
 #pragma once
 
-#define PLUGIN_NAME "CatInv"
+#define PLUGIN_NAME "CATINV_UNION"
 
 #include "CatInvConst.h"
 #include "CatInvCore.h"
@@ -10,4 +10,5 @@ namespace GOTHIC_ENGINE {
     std::wstring AToW(const std::string& st, UINT cpg = CP_ACP, DWORD flags = 0);
     std::string WToA(const std::wstring& st, UINT cpg = CP_ACP, DWORD flags = 0);
     zSTRING WCharToZString(wchar_t wc);
+    int CompareStringsLocaleAware(const char* str1, const char* str2);
 }

@@ -1,5 +1,8 @@
 // Supported with union (c) 2020 Union team
 
 // User API for oCNpc
-// Add your methods here
+// CatInv plugin hooks
 
+void EquipItem_Union(oCItem*);
+void UnequipItem_Union(oCItem*);
+int EV_UseItemToState_Union(oCMsgManipulate*);

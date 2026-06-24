@@ -4,4 +4,5 @@
 // CatInv plugin hooks
 
 void CreateList_Union();
+void Remove_Union(oCItem*);
 
