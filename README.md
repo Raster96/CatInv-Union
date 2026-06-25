@@ -223,3 +223,5 @@ This is a community project. Feel free to:
 ---
 
 **Note**: This is an unofficial port. For the original Ninja version, visit [szapp's CatInv repository](https://github.com/szapp/CatInv).
+CatInv, Copyright (C) 2019-2024 Sören Zapp.
+Released under the MIT License.
