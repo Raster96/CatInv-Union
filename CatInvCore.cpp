@@ -837,11 +837,17 @@ namespace GOTHIC_ENGINE {
     void oCStealContainer::CreateList_Union() {
         int side = this->right ? 1 : 0;
         
+        // Preserve selectedItem - Gothic's CreateList resets it
+        int savedSelectedItem = this->selectedItem;
+        
         if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
             this->contents = CatInvCore::backupListBySide[side];
         }
         
         THISCALL(Hook_oCStealContainer_CreateList)();
+        
+        // Restore selectedItem after Gothic's CreateList
+        this->selectedItem = savedSelectedItem;
         
         if (CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
@@ -857,6 +863,8 @@ namespace GOTHIC_ENGINE {
     void oCNpcContainer::CreateList_Union() {
         int side = this->right ? 1 : 0;
         
+        int savedSelectedItem = this->selectedItem;
+        
         if (InDevelopment) {
             cmd << "oCNpcContainer::CreateList Side=" << (this->right ? "RIGHT" : "LEFT");
             cmd << " Category=" << CatInvCore::activeCategory;
@@ -871,6 +879,8 @@ namespace GOTHIC_ENGINE {
         }
         
         THISCALL(Hook_oCNpcContainer_CreateList)();
+        
+        this->selectedItem = savedSelectedItem;
         
         if (CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
