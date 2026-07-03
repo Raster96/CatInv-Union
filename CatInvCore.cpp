@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <climits>
 
 namespace GOTHIC_ENGINE {
     int CatInvCore::activeCategory = 0;
@@ -688,24 +689,69 @@ namespace GOTHIC_ENGINE {
             }
         }
         
-        int numItems = 0;
-        if (this->contents) {
-            zCListSort<oCItem>* list = this->contents->next;
-            while (list) {
-                numItems++;
-                list = list->next;
+        bool isTrading = false;
+        if (CatInvCore::containerBySide[0] != nullptr && CatInvCore::containerBySide[1] != nullptr) {
+            if (dynamic_cast<oCStealContainer*>(CatInvCore::containerBySide[0])) {
+                isTrading = true;
             }
         }
         
+        if (!isTrading) {
+            int numItems = 0;
+            if (this->contents) {
+                zCListSort<oCItem>* list = this->contents->next;
+                while (list) {
+                    numItems++;
+                    list = list->next;
+                }
+            }
+            
+            int maxCols = this->maxSlotsCol;
+            int maxRows = this->maxSlotsRow;
+            int visibleSlots = maxCols * maxRows;
+            int newSelected = this->selectedItem + maxCols;
+            
+            if (newSelected < numItems) {
+                this->selectedItem = newSelected;
+                
+                if (this->selectedItem >= this->offset + visibleSlots) {
+                    this->offset += maxCols;
+                }
+                
+                this->prepared = 0;
+                oCItemContainer::Container_PrepareDraw();
+            }
+            return;
+        }
+        
+        const int ITM_FLAG_ACTIVE = 1 << 30;
         int maxCols = this->maxSlotsCol;
         int maxRows = this->maxSlotsRow;
         int visibleSlots = maxCols * maxRows;
         
-        int newSelected = this->selectedItem + maxCols;
+        int currentCol = this->selectedItem % maxCols;
         
-        if (newSelected < numItems) {
-            this->selectedItem = newSelected;
-            
+        int targetIndex = this->selectedItem + maxCols;
+        int itemIndex = 0;
+        bool found = false;
+        
+        if (this->contents) {
+            zCListSort<oCItem>* list = this->contents->next;
+            while (list) {
+                if (itemIndex >= targetIndex) {
+                    int itemCol = itemIndex % maxCols;
+                    if (itemCol == currentCol && list->data && !(list->data->flags & ITM_FLAG_ACTIVE)) {
+                        this->selectedItem = itemIndex;
+                        found = true;
+                        break;
+                    }
+                }
+                itemIndex++;
+                list = list->next;
+            }
+        }
+        
+        if (found) {
             if (this->selectedItem >= this->offset + visibleSlots) {
                 this->offset += maxCols;
             }
@@ -731,12 +777,60 @@ namespace GOTHIC_ENGINE {
             }
         }
         
+        bool isTrading = false;
+        if (CatInvCore::containerBySide[0] != nullptr && CatInvCore::containerBySide[1] != nullptr) {
+            if (dynamic_cast<oCStealContainer*>(CatInvCore::containerBySide[0])) {
+                isTrading = true;
+            }
+        }
+        
+        if (!isTrading) {
+            int maxCols = this->maxSlotsCol;
+            int newSelected = this->selectedItem - maxCols;
+            
+            if (newSelected >= 0) {
+                this->selectedItem = newSelected;
+                
+                if (this->selectedItem < this->offset) {
+                    this->offset -= maxCols;
+                    if (this->offset < 0) this->offset = 0;
+                }
+                
+                this->prepared = 0;
+                oCItemContainer::Container_PrepareDraw();
+            }
+            return;
+        }
+        
+        const int ITM_FLAG_ACTIVE = 1 << 30;
         int maxCols = this->maxSlotsCol;
         
-        int newSelected = this->selectedItem - maxCols;
+        int currentCol = this->selectedItem % maxCols;
         
-        if (newSelected >= 0) {
-            this->selectedItem = newSelected;
+        int targetIndex = this->selectedItem - maxCols;
+        
+        if (targetIndex < 0) {
+            return;
+        }
+        
+        std::vector<int> candidatesInColumn;
+        int itemIndex = 0;
+        
+        if (this->contents) {
+            zCListSort<oCItem>* list = this->contents->next;
+            while (list && itemIndex < this->selectedItem) {
+                int itemCol = itemIndex % maxCols;
+                if (itemCol == currentCol && list->data && !(list->data->flags & ITM_FLAG_ACTIVE)) {
+                    candidatesInColumn.push_back(itemIndex);
+                }
+                itemIndex++;
+                list = list->next;
+            }
+        }
+        
+        if (!candidatesInColumn.empty()) {
+            int newSelectedItem = candidatesInColumn.back();
+            this->selectedItem = newSelectedItem;
             
             if (this->selectedItem < this->offset) {
                 this->offset -= maxCols;
@@ -800,6 +894,8 @@ namespace GOTHIC_ENGINE {
 
     HOOK Hook_oCItemContainer_CheckSelectedItem PATCH(&oCItemContainer::CheckSelectedItem, &oCItemContainer::CheckSelectedItem_Union);
     void oCItemContainer::CheckSelectedItem_Union() {
+        const int ITM_FLAG_ACTIVE = 1 << 30;
+        
         int numItems = 0;
         if (this->contents) {
             zCListSort<oCItem>* list = this->contents->next;
@@ -816,21 +912,68 @@ namespace GOTHIC_ENGINE {
             this->selectedItem = numItems - 1;
         }
         
-        int maxCols = this->maxSlotsCol;
-        int maxRows = this->maxSlotsRow;
-        int visibleSlots = maxCols * maxRows;
-        
-        if (this->selectedItem < this->offset) {
-            this->offset = (this->selectedItem / maxCols) * maxCols;
-        }
-        if (this->selectedItem >= this->offset + visibleSlots) {
-            int selectedRow = this->selectedItem / maxCols;
-            int firstVisibleRow = selectedRow - maxRows + 1;
-            if (firstVisibleRow < 0) firstVisibleRow = 0;
-            this->offset = firstVisibleRow * maxCols;
+        bool isTrading = false;
+        if (CatInvCore::containerBySide[0] != nullptr && CatInvCore::containerBySide[1] != nullptr) {
+            if (dynamic_cast<oCStealContainer*>(CatInvCore::containerBySide[0])) {
+                isTrading = true;
+            }
         }
         
-        if (this->offset < 0) this->offset = 0;
+        if (isTrading && this->contents && numItems > 0) {
+            int currentIndex = 0;
+            zCListSort<oCItem>* list = this->contents->next;
+            
+            bool currentIsEquipped = false;
+            zCListSort<oCItem>* checkList = this->contents->next;
+            int checkIndex = 0;
+            while (checkList && checkIndex <= this->selectedItem) {
+                if (checkIndex == this->selectedItem && checkList->data && (checkList->data->flags & ITM_FLAG_ACTIVE)) {
+                    currentIsEquipped = true;
+                    break;
+                }
+                checkIndex++;
+                checkList = checkList->next;
+            }
+            
+            if (currentIsEquipped) {
+                list = this->contents->next;
+                currentIndex = 0;
+                bool foundNonEquipped = false;
+                while (list) {
+                    if (list->data && !(list->data->flags & ITM_FLAG_ACTIVE)) {
+                        this->selectedItem = currentIndex;
+                        foundNonEquipped = true;
+                        break;
+                    }
+                    currentIndex++;
+                    list = list->next;
+                }
+                
+                if (!foundNonEquipped) {
+                    this->selectedItem = -1;
+                    this->offset = 0;
+                    return;
+                }
+            }
+        }
+        
+        if (this->selectedItem >= 0) {
+            int maxCols = this->maxSlotsCol;
+            int maxRows = this->maxSlotsRow;
+            int visibleSlots = maxCols * maxRows;
+            
+            if (this->selectedItem < this->offset) {
+                this->offset = (this->selectedItem / maxCols) * maxCols;
+            }
+            if (this->selectedItem >= this->offset + visibleSlots) {
+                int selectedRow = this->selectedItem / maxCols;
+                int firstVisibleRow = selectedRow - maxRows + 1;
+                if (firstVisibleRow < 0) firstVisibleRow = 0;
+                this->offset = firstVisibleRow * maxCols;
+            }
+            
+            if (this->offset < 0) this->offset = 0;
+        }
     }
 
     HOOK Hook_oCStealContainer_CreateList PATCH(&oCStealContainer::CreateList, &oCStealContainer::CreateList_Union);
