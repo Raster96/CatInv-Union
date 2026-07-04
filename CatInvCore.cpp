@@ -188,7 +188,6 @@ namespace GOTHIC_ENGINE {
                 nextIndex = availableCount - 1;
             }
         } else {
-            // Stop at edges
             if (nextIndex >= availableCount) {
                 nextIndex = availableCount - 1;
             } else if (nextIndex < 0) {
@@ -488,8 +487,6 @@ namespace GOTHIC_ENGINE {
         
         bool isPlayerInventory = (container->right != 0);
         bool isDeadBody = (dynamic_cast<oCNpcContainer*>(container) != nullptr);
-        // Note: oCMobContainer is NOT an oCItemContainer! It contains an oCItemContainer* member.
-        // A chest container is an oCItemContainer that's NOT oCNpcInventory, oCStealContainer, or oCNpcContainer
         bool isChest = (!dynamic_cast<oCNpcInventory*>(container) && 
                        !dynamic_cast<oCStealContainer*>(container) && 
                        !dynamic_cast<oCNpcContainer*>(container));
@@ -920,6 +917,13 @@ namespace GOTHIC_ENGINE {
         }
         
         if (isTrading && this->contents && numItems > 0) {
+            int side = this->right ? 1 : 0;
+            bool isFilteredList = (CatInvCore::containerBySide[side] == this && 
+                                  CatInvCore::backupListBySide[side] &&
+                                  this->contents != CatInvCore::backupListBySide[side]);
+            bool needsFilter = CatInvCore::activeCategory != INV_CAT_ALL || CatInvCore::searchActive || CatInvCore::activeSortMode != CatInvCore::SORT_NONE;
+            
+            if (!needsFilter || isFilteredList) {
             int currentIndex = 0;
             zCListSort<oCItem>* list = this->contents->next;
             
@@ -955,6 +959,7 @@ namespace GOTHIC_ENGINE {
                     return;
                 }
             }
+            }
         }
         
         if (this->selectedItem >= 0) {
@@ -980,7 +985,6 @@ namespace GOTHIC_ENGINE {
     void oCStealContainer::CreateList_Union() {
         int side = this->right ? 1 : 0;
         
-        // Preserve selectedItem - Gothic's CreateList resets it
         int savedSelectedItem = this->selectedItem;
         
         if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
@@ -989,7 +993,6 @@ namespace GOTHIC_ENGINE {
         
         THISCALL(Hook_oCStealContainer_CreateList)();
         
-        // Restore selectedItem after Gothic's CreateList
         this->selectedItem = savedSelectedItem;
         
         if (CatInvCore::containerBySide[side] == this) {
@@ -1015,7 +1018,7 @@ namespace GOTHIC_ENGINE {
         }
         
         CatInvCore::activeCategory = INV_CAT_ALL;
-        CatInvCore::activeSortMode = CatInvCore::SORT_NONE;  // Reset sorting when opening dead NPC
+        CatInvCore::activeSortMode = CatInvCore::SORT_NONE;
         
         if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
             this->contents = CatInvCore::backupListBySide[side];
@@ -1184,6 +1187,11 @@ namespace GOTHIC_ENGINE {
             }
         }
         
+        zCListSort<oCItem>* savedContents = this->contents;
+        bool wasFiltered = (CatInvCore::containerBySide[side] == this && 
+                           CatInvCore::backupListBySide[side] &&
+                           this->contents != CatInvCore::backupListBySide[side]);
+        
         if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
             this->contents = CatInvCore::backupListBySide[side];
         }
@@ -1192,6 +1200,10 @@ namespace GOTHIC_ENGINE {
         
         if (CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
+        }
+        
+        if (wasFiltered && savedContents) {
+            this->contents = savedContents;
         }
         
         return result;
@@ -1267,7 +1279,7 @@ namespace GOTHIC_ENGINE {
             if (recentPtr->instanz == usedItemInstanz) {
                 DEV_LOG( "DetectRemoved: Skipping check for used item instanz=" << recentPtr->instanz 
                     << " name=" << recentPtr->name.ToChar() << endl);
-                continue;  // Don't remove, item will come back
+                continue;
             }
             
             if (inv->inventory.next) {
@@ -1345,7 +1357,7 @@ namespace GOTHIC_ENGINE {
         for (const auto& pair : currentInv) {
             int instanz = pair.first;
             int currentAmount = pair.second;
-            int previousAmount = inventorySnapshot[instanz]; // 0 if not found
+            int previousAmount = inventorySnapshot[instanz];
             
             if (currentAmount > previousAmount) {
                 if (usedItemInstanz != 0 && instanz == usedItemInstanz) {
@@ -1442,6 +1454,11 @@ namespace GOTHIC_ENGINE {
     oCItem* oCNpcInventory::Remove_Union(oCItem* item, int amount) {
         int side = this->right ? 1 : 0;
         
+        zCListSort<oCItem>* savedContents = this->contents;
+        bool wasFiltered = (CatInvCore::containerBySide[side] == this && 
+                           CatInvCore::backupListBySide[side] &&
+                           this->contents != CatInvCore::backupListBySide[side]);
+        
         if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
             this->contents = CatInvCore::backupListBySide[side];
         }
@@ -1450,6 +1467,10 @@ namespace GOTHIC_ENGINE {
         
         if (CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
+        }
+        
+        if (wasFiltered && savedContents) {
+            this->contents = savedContents;
         }
         
         if (player && this->owner == player && this->IsOpen() && CatInvCore::IsWorldReady()) {
@@ -1463,6 +1484,11 @@ namespace GOTHIC_ENGINE {
     oCItem* oCNpcInventory::RemoveByPtr_Union(oCItem* item, int amount) {
         int side = this->right ? 1 : 0;
         
+        zCListSort<oCItem>* savedContents = this->contents;
+        bool wasFiltered = (CatInvCore::containerBySide[side] == this && 
+                           CatInvCore::backupListBySide[side] &&
+                           this->contents != CatInvCore::backupListBySide[side]);
+        
         if (CatInvCore::containerBySide[side] == this && CatInvCore::backupListBySide[side]) {
             this->contents = CatInvCore::backupListBySide[side];
         }
@@ -1471,6 +1497,10 @@ namespace GOTHIC_ENGINE {
         
         if (CatInvCore::containerBySide[side] == this) {
             CatInvCore::backupListBySide[side] = this->contents;
+        }
+        
+        if (wasFiltered && savedContents) {
+            this->contents = savedContents;
         }
         
         if (player && this->owner == player && this->IsOpen() && CatInvCore::IsWorldReady()) {
@@ -1729,7 +1759,6 @@ namespace GOTHIC_ENGINE {
     }
     
     void CatInvCore::SaveFavorites(int slotId) {
-        // Now handled by SaveRecentItems which saves both favorites and recent
         SaveRecentItems(slotId);
     }
     
@@ -1941,7 +1970,7 @@ namespace GOTHIC_ENGINE {
         for (int instanz : recentItems) {
             DEV_LOG( "RebuildRecentPointers: Looking for instanz=" << instanz << " (used so far: " << usedCount[instanz] << ")" << endl);
             
-            int skipCount = usedCount[instanz];  // How many to skip
+            int skipCount = usedCount[instanz];
             int currentCount = 0;
             bool found = false;
             
@@ -2012,7 +2041,6 @@ namespace GOTHIC_ENGINE {
         
         ar->WriteInt("version", 4);
         
-        // Save favorites
         ar->WriteInt("favoritesCount", favoriteItems.size());
         int idx = 0;
         for (std::set<int>::iterator it = favoriteItems.begin(); it != favoriteItems.end(); ++it) {
@@ -2022,7 +2050,6 @@ namespace GOTHIC_ENGINE {
             idx++;
         }
         
-        // Save recent items
         ar->WriteInt("recentCount", recentItems.size());
         idx = 0;
         for (std::deque<int>::iterator it = recentItems.begin(); it != recentItems.end(); ++it) {
