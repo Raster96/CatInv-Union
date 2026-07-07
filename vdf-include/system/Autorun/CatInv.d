@@ -100,7 +100,7 @@ func int Act_OpenWebLink()
 instance MenuItem_Opt_Open_Link(C_MENU_ITEM_DEF)
 {
   C_MENU_ITEM_TEXT_BASE();
-  posy += MENU_DY * 8;
+  posy += MENU_DY * 9;
 
   posx             = 64;
   onselaction[0]   = SEL_ACTION_UNDEF;
@@ -391,7 +391,44 @@ instance MenuItem_Opt_CatInv_SortWindowPosition_Choice(C_MENU_ITEM_DEF)
   );
 };
 
-// ====== 8. Open Project Page ======
+// ====== 8. Language Override ======
+instance MenuItem_Opt_CatInv_LanguageOverride(C_MENU_ITEM)
+{
+  CurrentMenuItem_PY = 8;
+  C_MENU_ITEM_TEXT_BASE();
+  fontname = FontSmall;
+  posy += Menu_DY * CurrentMenuItem_PY + Text_DY;
+
+  text[0] = Str_GetLocalizedString(
+    "Язык",
+    "Language",
+    "Sprache",
+    "Język"
+  );
+  text[1] = Str_GetLocalizedString(
+    "Язык для пользовательских текстов (например, сортировка)",
+    "Language for custom texts (e.g., sorting)",
+    "Sprache für benutzerdefinierte Texte (z.B. Sortierung)",
+    "Język dla niestandardowych tekstów (np. sortowanie)"
+  );
+};
+
+instance MenuItem_Opt_CatInv_LanguageOverride_Choice(C_MENU_ITEM_DEF)
+{
+  C_MENUITEM_CHOICE_BASE();
+  posy += Menu_DY * CurrentMenuItem_PY;
+
+  onchgsetoption        = "LanguageOverride";
+  onchgsetoptionsection = "CATINV_UNION";
+  text[0]               = Str_GetLocalizedString(
+    "Системный|EN|PL|DE|RU|CS|FR|IT|ES|HU|UK",
+    "System|EN|PL|DE|RU|CS|FR|IT|ES|HU|UK",
+    "System|EN|PL|DE|RU|CS|FR|IT|ES|HU|UK",
+    "Systemowy|EN|PL|DE|RU|CS|FR|IT|ES|HU|UK"
+  );
+};
+
+// ====== 9. Open Project Page ======
 instance MenuItem_Opt_CATINV_Open_Link(C_MENU_ITEM)
 {
   MenuItem_Opt_Open_Link();

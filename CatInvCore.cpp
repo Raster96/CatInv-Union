@@ -6,6 +6,31 @@
 #include <climits>
 
 namespace GOTHIC_ENGINE {
+    // Helper function to get effective language based on user preference
+    WORD GetEffectiveLanguage() {
+        // 0=System, 1=EN, 2=PL, 3=DE, 4=RU, 5=CS, 6=FR, 7=IT, 8=ES, 9=HU, 10=UK
+        if (CatInvOptions::LanguageOverride == 0) {
+            // Use system default
+            LANGID langId = GetSystemDefaultLangID();
+            return PRIMARYLANGID(langId);
+        } else {
+            // Map override to LANG_ constants
+            switch (CatInvOptions::LanguageOverride) {
+                case 1: return LANG_ENGLISH;
+                case 2: return LANG_POLISH;
+                case 3: return LANG_GERMAN;
+                case 4: return LANG_RUSSIAN;
+                case 5: return LANG_CZECH;
+                case 6: return LANG_FRENCH;
+                case 7: return LANG_ITALIAN;
+                case 8: return LANG_SPANISH;
+                case 9: return LANG_HUNGARIAN;
+                case 10: return LANG_UKRAINIAN;
+                default: return LANG_ENGLISH;
+            }
+        }
+    }
+    
     int CatInvCore::activeCategory = 0;
     zCView* CatInvCore::categoryView = nullptr;
     bool CatInvCore::initialized = false;
@@ -2172,8 +2197,7 @@ namespace GOTHIC_ENGINE {
             return zSTRING("");
         }
         
-        LANGID langId = GetSystemDefaultLangID();
-        WORD primaryLang = PRIMARYLANGID(langId);
+        WORD primaryLang = GetEffectiveLanguage();
         
         // 9-1 = descending (high to low), 1-9 = ascending (low to high)
         const char* sortNames[5][10] = {

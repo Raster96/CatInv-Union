@@ -60,9 +60,10 @@ namespace GOTHIC_ENGINE {
         "Miscellaneous"    
     };
     
+    WORD GetEffectiveLanguage();
+    
     inline const char* GetFavoritesText() {
-        LANGID langId = GetSystemDefaultLangID();
-        WORD primaryLang = PRIMARYLANGID(langId);
+        WORD primaryLang = GetEffectiveLanguage();
         
         switch (primaryLang) {
             case LANG_ENGLISH:
@@ -91,8 +92,7 @@ namespace GOTHIC_ENGINE {
     }
     
     inline const char* GetRecentText() {
-        LANGID langId = GetSystemDefaultLangID();
-        WORD primaryLang = PRIMARYLANGID(langId);
+        WORD primaryLang = GetEffectiveLanguage();
         
         switch (primaryLang) {
             case LANG_ENGLISH:

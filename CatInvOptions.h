@@ -12,6 +12,7 @@ namespace GOTHIC_ENGINE {
         int MaxRecentItems = 15; // Maximum number of recent items to track (default: 15, min: 1, no upper limit)
         int KeyToggleFavorite = KEY_EQUALS; // Key to toggle favorite (default: = key, configurable in menu)
         int SortWindowPosition = 0; // 0=bottom (below gold window), 1=top (above gold window)
+        int LanguageOverride = 0; // 0=System default, 1=English, 2=Polish, 3=German, 4=Russian, 5=Czech, 6=French, 7=Italian, 8=Spanish, 9=Hungarian, 10=Ukrainian
 
         int invCatOrder[INV_CAT_MAX];
 
@@ -45,6 +46,7 @@ namespace GOTHIC_ENGINE {
             FavoriteIconSize = zoptions->ReadInt(PLUGIN_NAME, "FavoriteIconSize", 0);
             MaxRecentItems = zoptions->ReadInt(PLUGIN_NAME, "MaxRecentItems", 15);
             SortWindowPosition = zoptions->ReadInt(PLUGIN_NAME, "SortWindowPosition", 0);
+            LanguageOverride = zoptions->ReadInt(PLUGIN_NAME, "LanguageOverride", 0);
             
             // Read key binding from [CATINV_UNION] section
             KeyToggleFavorite = zoptions->ReadInt(PLUGIN_NAME, "KeyToggleFavorite", KEY_EQUALS);
