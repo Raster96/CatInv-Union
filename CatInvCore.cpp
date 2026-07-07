@@ -2274,7 +2274,15 @@ namespace GOTHIC_ENGINE {
         int width = 2 * defaultWidth;
         int height = viewTitle->vsizey;
         
-        int posY = viewTitle->vposy + viewTitle->vsizey - 1;
+        int posY;
+        if (CatInvOptions::SortWindowPosition == 1) {
+            // Top position: above gold window (viewTitle)
+            posY = viewTitle->vposy - height + 1;
+        } else {
+            // Bottom position (default): below gold window (viewTitle)
+            posY = viewTitle->vposy + viewTitle->vsizey - 1;
+        }
+        
         int posX;
         if (container->right) {
             posX = viewTitle->vposx;

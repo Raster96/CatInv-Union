@@ -100,7 +100,7 @@ func int Act_OpenWebLink()
 instance MenuItem_Opt_Open_Link(C_MENU_ITEM_DEF)
 {
   C_MENU_ITEM_TEXT_BASE();
-  posy += MENU_DY * 7;
+  posy += MENU_DY * 8;
 
   posx             = 64;
   onselaction[0]   = SEL_ACTION_UNDEF;
@@ -168,7 +168,7 @@ instance MenuItem_Opt_CatInv_IconCorner_Choice(C_MENU_ITEM_DEF)
   posy += Menu_DY * CurrentMenuItem_PY;
 
   onchgsetoption        = "FavoriteIconCorner";
-  onchgsetoptionsection = "CatInv";
+  onchgsetoptionsection = "CATINV_UNION";
   text[0]               = Str_GetLocalizedString(
     "Л-Низ|П-Низ|Л-Верх|П-Верх",
     "Bottom-Left|Bottom-Right|Top-Left|Top-Right",
@@ -205,7 +205,7 @@ instance MenuItem_Opt_CatInv_IconSize_Choice(C_MENU_ITEM_DEF)
   posy += Menu_DY * CurrentMenuItem_PY;
 
   onchgsetoption        = "FavoriteIconSize";
-  onchgsetoptionsection = "CatInv";
+  onchgsetoptionsection = "CATINV_UNION";
   text[0]               = "100%|150%|200%";
 };
 
@@ -237,7 +237,7 @@ instance MenuItem_Opt_CatInv_ChangeOnLast_Choice(C_MENU_ITEM_DEF)
   posy += Menu_DY * CurrentMenuItem_PY;
 
   onchgsetoption        = "invCatChangeOnLast";
-  onchgsetoptionsection = "CatInv";
+  onchgsetoptionsection = "CATINV_UNION";
   text[0]               = Str_GetLocalizedString(
     "Выкл|Вкл",
     "Off|On",
@@ -274,7 +274,7 @@ instance MenuItem_Opt_CatInv_HideFavorites_Choice(C_MENU_ITEM_DEF)
   posy += Menu_DY * CurrentMenuItem_PY;
 
   onchgsetoption        = "invCatHideFavorites";
-  onchgsetoptionsection = "CatInv";
+  onchgsetoptionsection = "CATINV_UNION";
   text[0]               = Str_GetLocalizedString(
     "Выкл|Вкл",
     "Off|On",
@@ -311,7 +311,7 @@ instance MenuItem_Opt_CatInv_HideRecent_Choice(C_MENU_ITEM_DEF)
   posy += Menu_DY * CurrentMenuItem_PY;
 
   onchgsetoption        = "invCatHideRecent";
-  onchgsetoptionsection = "CatInv";
+  onchgsetoptionsection = "CATINV_UNION";
   text[0]               = Str_GetLocalizedString(
     "Выкл|Вкл",
     "Off|On",
@@ -354,7 +354,44 @@ instance MenuItem_Opt_CatInv_KeyToggleFavorite_Choice(C_MENU_ITEM_DEF)
   // Note: IT_SELECTABLE is already removed by C_MENUITEM_CHOICE_BASE(), don't add it back
 };
 
-// ====== 7. Open Project Page ======
+// ====== 7. Sort Window Position ======
+instance MenuItem_Opt_CatInv_SortWindowPosition(C_MENU_ITEM)
+{
+  CurrentMenuItem_PY = 7;
+  C_MENU_ITEM_TEXT_BASE();
+  fontname = FontSmall;
+  posy += Menu_DY * CurrentMenuItem_PY + Text_DY;
+
+  text[0] = Str_GetLocalizedString(
+    "Положение окна сортировки",
+    "Sort Window Position",
+    "Sortier-Fenster Position",
+    "Pozycja okna sortowania"
+  );
+  text[1] = Str_GetLocalizedString(
+    "Положение окна сортировки относительно окна с золотом",
+    "Position of the sort window relative to gold window",
+    "Position des Sortierfensters relativ zum Goldfenster",
+    "Pozycja okna sortowania względem okna ze złotem"
+  );
+};
+
+instance MenuItem_Opt_CatInv_SortWindowPosition_Choice(C_MENU_ITEM_DEF)
+{
+  C_MENUITEM_CHOICE_BASE();
+  posy += Menu_DY * CurrentMenuItem_PY;
+
+  onchgsetoption        = "SortWindowPosition";
+  onchgsetoptionsection = "CATINV_UNION";
+  text[0]               = Str_GetLocalizedString(
+    "Низ|Верх",
+    "Bottom|Top",
+    "Unten|Oben",
+    "Dół|Góra"
+  );
+};
+
+// ====== 8. Open Project Page ======
 instance MenuItem_Opt_CATINV_Open_Link(C_MENU_ITEM)
 {
   MenuItem_Opt_Open_Link();

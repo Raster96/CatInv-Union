@@ -97,6 +97,8 @@ namespace GOTHIC_ENGINE {
                             CatInvCore::ToggleFavorite(selectedItem);
                         }
                     }
+                    
+                    zinput->SetKey(CatInvOptions::KeyToggleFavorite, 0);
                 }
                 
                 if (shiftPressed && zinput->KeyToggled(KEY_F)) {

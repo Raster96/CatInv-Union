@@ -11,6 +11,7 @@ namespace GOTHIC_ENGINE {
         int FavoriteIconSize = 0; // 0=100%, 1=150%, 2=200%
         int MaxRecentItems = 15; // Maximum number of recent items to track (default: 15, min: 1, no upper limit)
         int KeyToggleFavorite = KEY_EQUALS; // Key to toggle favorite (default: = key, configurable in menu)
+        int SortWindowPosition = 0; // 0=bottom (below gold window), 1=top (above gold window)
 
         int invCatOrder[INV_CAT_MAX];
 
@@ -43,9 +44,10 @@ namespace GOTHIC_ENGINE {
             FavoriteIconCorner = zoptions->ReadInt(PLUGIN_NAME, "FavoriteIconCorner", 0);
             FavoriteIconSize = zoptions->ReadInt(PLUGIN_NAME, "FavoriteIconSize", 0);
             MaxRecentItems = zoptions->ReadInt(PLUGIN_NAME, "MaxRecentItems", 15);
+            SortWindowPosition = zoptions->ReadInt(PLUGIN_NAME, "SortWindowPosition", 0);
             
             // Read key binding from [CATINV_UNION] section
-            KeyToggleFavorite = zoptions->ReadInt("CATINV_UNION", "KeyToggleFavorite", KEY_EQUALS);
+            KeyToggleFavorite = zoptions->ReadInt(PLUGIN_NAME, "KeyToggleFavorite", KEY_EQUALS);
             
             // Clamp MaxRecentItems to minimum 1 (no upper limit)
             if (MaxRecentItems < 1) MaxRecentItems = 1;
