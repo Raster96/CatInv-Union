@@ -879,8 +879,8 @@ namespace GOTHIC_ENGINE {
     
     HOOK Hook_oCItemContainer_Close PATCH(&oCItemContainer::Close, &oCItemContainer::Close_Union);
     void oCItemContainer::Close_Union() {
-        if (CatInvCore::IsWorldReady()) {
-            if (player && dynamic_cast<oCNpcInventory*>(this) && static_cast<oCNpcInventory*>(this)->owner == player) {
+        if (CatInvCore::IsWorldReady() && player && player->inventory2.IsOpen()) {
+            if (dynamic_cast<oCNpcInventory*>(this) && static_cast<oCNpcInventory*>(this)->owner == player) {
                 CatInvCore::DetectNewItems();
             }
             
